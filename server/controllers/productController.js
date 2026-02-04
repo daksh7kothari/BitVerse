@@ -134,15 +134,19 @@ export const createProduct = async (req, res) => {
         }
 
         // Mass balance validation: net_gold_weight = SUM(weight_used) + wastage (±0.01g)
-        const discrepancy = Math.abs(net_gold_weight - (totalWeightUsed + wastageWeight))
+        const totalUsedWithWastage = parseFloat((totalWeightUsed + wastageWeight).toFixed(2))
+        const netWeight = parseFloat(net_gold_weight.toFixed(2))
+        const discrepancy = Math.abs(netWeight - totalUsedWithWastage)
+
         if (discrepancy > 0.01) {
             return res.status(400).json({
                 error: 'Mass balance violation',
-                net_gold_weight: net_gold_weight,
+                net_gold_weight: netWeight,
                 total_weight_used: totalWeightUsed,
                 wastage_weight: wastageWeight,
-                discrepancy: discrepancy.toFixed(2),
-                message: 'net_gold_weight must equal sum of weight_used + wastage (±0.01g)'
+                total_calculated: totalUsedWithWastage,
+                discrepancy: discrepancy.toFixed(3),
+                message: `Net gold weight (${netWeight}g) must equal sum (${totalUsedWithWastage}g) ±0.01g`
             })
         }
 
@@ -374,6 +378,72 @@ export const traceProduct = async (req, res) => {
 
     } catch (error) {
         console.error('Trace product error:', error)
+        res.status(500).json({ error: 'Internal server error' })
+    }
+}
+/**
+ * GET /api/products/my
+ * Get products owned by the current craftsman
+ */
+export const getMyProducts = async (req, res) => {
+    try {
+        const userId = req.user.id
+        const { data: products, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('craftsman_id', userId)
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        res.json(products)
+    } catch (error) {
+        console.error('Get my products error:', error)
+        res.status(500).json({ error: 'Internal server error' })
+    }
+}
+
+/**
+ * POST /api/products/:id/transfer
+ * Transfer product ownership
+ */
+export const transferProduct = async (req, res) => {
+    try {
+        const productId = req.params.id
+        const { to_participant_id, notes } = req.body
+        const userId = req.user.id
+
+        // Verify product ownership
+        const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('id, product_id, craftsman_id')
+            .eq('id', productId)
+            .single()
+
+        if (fetchError || !product) {
+            return res.status(404).json({ error: 'Product not found' })
+        }
+
+        if (product.craftsman_id !== userId) {
+            return res.status(403).json({ error: 'You do not own this product' })
+        }
+
+        // Update ownership
+        const { error: updateError } = await supabase
+            .from('products')
+            .update({ craftsman_id: to_participant_id })
+            .eq('id', productId)
+
+        if (updateError) throw updateError
+
+        // Log action
+        await logAction(userId, 'transfer_product', 'product', product.id, {
+            to_participant_id,
+            notes: notes || 'Product transferred'
+        }, req.ip)
+
+        res.json({ message: 'Product transferred successfully', product_id: product.product_id })
+    } catch (error) {
+        console.error('Transfer product error:', error)
         res.status(500).json({ error: 'Internal server error' })
     }
 }

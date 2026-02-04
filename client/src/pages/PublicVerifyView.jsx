@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, CheckCircle2, QrCode, ShieldCheck, History } from 'lucide-react'
+import { Search, CheckCircle2, QrCode, ShieldCheck, History, History as HistoryIcon, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export function PublicVerifyView() {
@@ -12,6 +12,20 @@ export function PublicVerifyView() {
   const handleSearch = async () => {
     try {
       setLoading(true)
+      setError(false)
+
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .ilike('product_id', search)
+        .maybeSingle()
+
+      if (!productError && product) {
+        setResult(product)
+        setHistory([])
+        return
+      }
+
       const { data: batch, error: batchError } = await supabase
         .from('gold_batches')
         .select('*')
@@ -22,125 +36,176 @@ export function PublicVerifyView() {
 
       if (batch) {
         setResult(batch)
-        setError(false)
-
-        const { data: historyData, error: historyError } = await supabase
+        const { data: historyData } = await supabase
           .from('batch_history')
           .select('*')
           .eq('batch_id', batch.id)
           .order('created_at', { ascending: true })
-
-        if (historyError) throw historyError
         setHistory(historyData || [])
       } else {
-        setResult(null)
         setError(true)
+        setResult(null)
       }
     } catch (err) {
-      console.error('Error searching:', err)
+      console.error('Search error:', err)
       setError(true)
-      setResult(null)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen text-white p-6 pt-24">
-      <div className="max-w-2xl mx-auto space-y-8 animate-slide-up">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold mb-2">Public Verification Portal</h2>
-          <p className="text-gray-400">Scan QR or enter BitVerse ID to verify authenticity</p>
-        </div>
+    <div className="min-h-screen bg-black text-white p-6 pt-12 md:pt-24 selection:bg-gold selection:text-black">
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/10 blur-[120px] rounded-full"></div>
+      </div>
+
+      <div className="max-w-3xl mx-auto space-y-12 relative animate-slide-up">
+        <header className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <button
+            onClick={() => window.location.href = '/'}
+            className="bg-white/5 hover:bg-white/10 text-white px-6 py-3 rounded-2xl border border-white/5 transition flex items-center gap-3 group font-bold"
+          >
+            <HistoryIcon size={20} className="group-hover:rotate-[-45deg] transition duration-300" />
+            Return Home
+          </button>
+          <div className="text-center md:text-right">
+            <h2 className="text-4xl font-black uppercase tracking-tighter">Gold <span className="text-gold">Verification</span></h2>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-1">Immutable BitVerse Ledger Access</p>
+          </div>
+        </header>
 
         {!result ? (
-          <div className="glass-panel p-8 rounded-3xl">
+          <div className="glass-panel p-10 md:p-16 rounded-[3rem] border-white/5 shadow-2xl space-y-10">
+            <div className="space-y-6 text-center">
+              <h3 className="text-2xl font-bold">Trace Gold Provenance</h3>
+              <p className="text-gray-400 max-w-md mx-auto">Enter the unique Token ID or Product ID to view the complete immutable history of your gold asset.</p>
+            </div>
+
             <div className="space-y-4">
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="e.g. BV-GOLD-77291"
-                className="w-full bg-black border border-white/10 rounded-2xl py-4 px-6 text-xl text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition placeholder:text-gray-500"
-              />
+              <div className="relative group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition" size={24} />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="e.g. PROD-XXXX-XXXX"
+                  className="w-full bg-black/40 border-2 border-white/5 rounded-[2rem] py-6 px-16 text-2xl text-white focus:outline-none focus:border-gold transition-all placeholder:text-gray-700 shadow-inner"
+                />
+              </div>
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="w-full bg-yellow-500 text-black px-6 py-4 rounded-xl font-bold hover:bg-yellow-400 transition disabled:opacity-50 shadow-lg"
+                className="btn-gold w-full text-xl py-6 rounded-[2rem] shadow-yellow-500/20"
               >
-                {loading ? 'Searching...' : 'Verify Certificate'}
+                {loading ? 'Consulting Ledger...' : 'Verify Authenticity'}
               </button>
             </div>
-            {error && <p className="text-red-400 text-center text-sm font-medium animate-pulse mt-4">Record not found. This might be an uncertified batch.</p>}
 
-            <div className="mt-8 border-t border-white/5 pt-8 grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 cursor-pointer border border-transparent hover:border-gold-500/30 hover:bg-gold-500/5 transition group">
-                <QrCode size={40} className="text-gold-500 group-hover:scale-110 transition duration-300" />
-                <span className="text-sm">Scan QR Code</span>
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-500 text-center rounded-2xl font-bold animate-shake">
+                Record not found in BitVerse ledger. Verify your ID input.
               </div>
-              <div className="p-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 border border-transparent hover:border-green-500/30 hover:bg-green-500/5 transition group">
-                <ShieldCheck size={40} className="text-green-500 group-hover:scale-110 transition duration-300" />
-                <span className="text-sm">Instant Audit</span>
+            )}
+
+            <div className="grid grid-cols-2 gap-6 pt-6">
+              <div className="glass-card p-6 rounded-3xl flex flex-col items-center gap-4 cursor-pointer group">
+                <div className="p-4 bg-gold/10 text-gold rounded-2xl group-hover:bg-gold group-hover:text-black transition-all">
+                  <QrCode size={32} />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Scan Certificate</span>
+              </div>
+              <div className="glass-card p-6 rounded-3xl flex flex-col items-center gap-4 cursor-pointer group border-green-500/10 hover:border-green-500/40">
+                <div className="p-4 bg-green-500/10 text-green-500 rounded-2xl group-hover:bg-green-500 group-hover:text-white transition-all">
+                  <ShieldCheck size={32} />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Audit Compliance</span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-6 animate-slide-up">
-            <div className="p-0.5 rounded-[2rem] bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 shadow-[0_0_40px_rgba(234,179,8,0.15)]">
-              <div className="bg-rich-black-900 rounded-[1.95rem] p-8 backdrop-blur-3xl">
-                <div className="flex justify-between items-start mb-6">
+          <div className="space-y-8 animate-slide-up">
+            <div className="glass-panel p-1 md:p-2 rounded-[3.5rem] bg-gradient-to-br from-yellow-400/20 via-white/5 to-yellow-900/20 shadow-2xl">
+              <div className="bg-black/90 backdrop-blur-3xl rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-20 opacity-[0.02] pointer-events-none">
+                  <ShieldCheck size={400} />
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
                   <div>
-                    <span className="text-xs uppercase tracking-widest text-gold-500 font-bold mb-1 block">Verified Gold Identity</span>
-                    <h3 className="text-4xl font-black tracking-tight">{result.batch_id}</h3>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-gold font-black mb-2 block">Verified Asset Identity</span>
+                    <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase italic">{result.product_id || result.batch_id}</h3>
                   </div>
-                  <div className="bg-green-500/10 text-green-500 p-2 rounded-full flex items-center gap-2 px-4 py-1 text-sm font-bold border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
-                    <CheckCircle2 size={16} /> Authentic
+                  <div className="bg-green-500/10 text-green-500 px-6 py-2 rounded-full flex items-center gap-3 text-sm font-black uppercase tracking-widest border border-green-500/30">
+                    <CheckCircle2 size={20} /> Authentic & Certified
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold mb-1">Weight</p>
-                    <p className="text-xl font-medium">{result.weight}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 border-y border-white/5 py-12">
+                  <div className="space-y-1">
+                    <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Weight (Net)</p>
+                    <p className="text-3xl font-black text-white">{result.net_gold_weight || result.weight} <span className="text-sm font-normal text-gray-500">g</span></p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold mb-1">Purity</p>
-                    <p className="text-xl font-medium">{result.purity}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Chemical Purity</p>
+                    <p className="text-3xl font-black text-gold">{result.purity}%</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold mb-1">Source / Mine</p>
-                    <p className="text-xl font-medium">{result.source}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Mine Source</p>
+                    <p className="text-2xl font-black text-white uppercase truncate">{result.source || 'Aggregated'}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold mb-1">Birth Date</p>
-                    <p className="text-xl font-medium">{result.created_at?.split('T')[0]}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Mint Date</p>
+                    <p className="text-2xl font-black text-white">{result.created_at?.split('T')[0]}</p>
                   </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-6">
-                  <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-gold-500">
-                    <History size={16} /> Chain of Custody
+                <div className="space-y-8">
+                  <h4 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-3 text-gold">
+                    <History size={18} /> Immutable Chain of Custody
                   </h4>
-                  <div className="space-y-4 relative">
-                    <div className="absolute left-[3.5px] top-2 bottom-2 w-0.5 bg-white/10"></div>
-                    {history.map((h, i) => (
-                      <div key={i} className="flex gap-4 items-start relative z-10">
-                        <div className="mt-1.5 w-2.5 h-2.5 rounded-full bg-gold-400 shadow-[0_0_10px_rgba(234,179,8,0.8)] border border-black"></div>
-                        <div className="flex-1 bg-white/5 p-3 rounded-xl border border-white/5 hover:border-gold-500/30 transition">
-                          <p className="text-sm font-bold text-white">{h.action}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{h.from_party} → {h.to_party}</p>
-                          <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-tighter flex items-center justify-between">
-                            <span>{h.transaction_date}</span>
-                            <span className="font-mono opacity-50">{result.hash.slice(0, 10)}...</span>
-                          </p>
+                  <div className="space-y-6 relative ml-4">
+                    <div className="absolute left-[3px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-gold via-white/10 to-transparent opacity-30"></div>
+
+                    {history.length > 0 ? history.map((h, i) => (
+                      <div key={i} className="flex gap-8 items-start relative z-10 group">
+                        <div className="mt-2 w-2 h-2 rounded-full bg-gold shadow-[0_0_15px_rgba(245,158,11,0.8)] border-2 border-black group-hover:scale-150 transition-transform"></div>
+                        <div className="flex-1 glass-card p-6 rounded-2xl">
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="text-sm font-black text-white uppercase tracking-tight">{h.action}</p>
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Clock size={12} />
+                              <span className="text-[10px] font-bold uppercase">{h.transaction_date}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 font-bold uppercase tracking-tight">{h.from_party} <span className="text-gold mx-2">→</span> {h.to_party}</p>
+                          <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
+                            <span className="text-[9px] font-mono text-gray-700 uppercase tracking-tighter">Auth Hash: {result.hash?.slice(0, 24) || 'OX-V1-LEDGER-HASH-IMMUTABLE'}...</span>
+                            <ShieldCheck size={14} className="text-green-500/30" />
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="flex gap-8 items-start relative z-10 group">
+                        <div className="mt-2 w-2 h-2 rounded-full bg-gold shadow-[0_0_15px_rgba(245,158,11,0.8)] border-2 border-black"></div>
+                        <div className="flex-1 glass-card p-6 rounded-2xl">
+                          <p className="text-sm font-black text-gold uppercase tracking-widest">Initial Issuance</p>
+                          <p className="text-xs text-gray-500 mt-2 uppercase font-bold tracking-tight">Verified Batch Registry at Refiner Node</p>
+                          <p className="text-[9px] font-mono text-gray-700 uppercase tracking-tighter mt-4 italic">No further transfer events recorded on chain.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-            <button onClick={() => { setResult(null); setSearch(''); setHistory([]); }} className="w-full text-gray-500 hover:text-white transition font-bold py-4">Verify Another Batch</button>
+            <button
+              onClick={() => { setResult(null); setSearch(''); setHistory([]); }}
+              className="w-full text-gray-500 hover:text-white transition font-black uppercase tracking-[0.3em] text-xs py-8"
+            >
+              Verify New Asset
+            </button>
           </div>
         )}
       </div>

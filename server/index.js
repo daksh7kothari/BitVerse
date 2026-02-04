@@ -6,6 +6,7 @@ import adminRoutes from './routes/admin.js'
 import tokensRoutes from './routes/tokens.js'
 import productsRoutes from './routes/products.js'
 import wastageRoutes from './routes/wastage.js'
+import participantsRoutes from './routes/participants.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { authenticate } from './middleware/auth.js'
 
@@ -31,6 +32,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/tokens', authenticate, tokensRoutes)
 app.use('/api/products', authenticate, productsRoutes)
 app.use('/api/wastage', authenticate, wastageRoutes)
+app.use('/api/participants', authenticate, participantsRoutes)
 
 // Public route for QR code traceability (no auth required)
 app.get('/api/products/:id/trace-public', async (req, res) => {

@@ -268,3 +268,25 @@ export const updateThreshold = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' })
     }
 }
+/**
+ * GET /api/wastage/logs
+ * List all wastage logs with details
+ */
+export const getWastageLogs = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('wastage_logs')
+            .select(`
+                *,
+                craftsman:participants!craftsman_id(name, role),
+                token:tokens(token_id, weight, purity)
+            `)
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        res.json(data)
+    } catch (error) {
+        console.error('Get wastage logs error:', error)
+        res.status(500).json({ error: 'Failed to fetch wastage logs' })
+    }
+}

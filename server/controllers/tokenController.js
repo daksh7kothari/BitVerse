@@ -224,15 +224,19 @@ export const splitToken = async (req, res) => {
         }
 
         // Mass balance validation (±0.01g tolerance)
-        const discrepancy = Math.abs(parentToken.weight - (totalChildWeight + wastageWeight))
+        const totalCalculated = parseFloat((totalChildWeight + wastageWeight).toFixed(2))
+        const parentWeight = parseFloat(parentToken.weight.toFixed(2))
+        const discrepancy = Math.abs(parentWeight - totalCalculated)
+
         if (discrepancy > 0.01) {
             return res.status(400).json({
                 error: 'Mass balance violation',
-                parent_weight: parentToken.weight,
+                parent_weight: parentWeight,
                 total_child_weight: totalChildWeight,
                 wastage_weight: wastageWeight,
-                discrepancy: discrepancy.toFixed(2),
-                message: 'Sum of child weights + wastage must equal parent weight (±0.01g)'
+                sum_calculated: totalCalculated,
+                discrepancy: discrepancy.toFixed(3),
+                message: `Sum (${totalCalculated}g) must equal parent (${parentWeight}g) ±0.01g`
             })
         }
 

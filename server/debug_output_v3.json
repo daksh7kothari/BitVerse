@@ -1,0 +1,191 @@
+{
+  "participants": [
+    {
+      "id": "9f53546e-67a2-4d0e-bd43-131479a64c62",
+      "name": "Gold Refinery Inc",
+      "role": "refiner",
+      "permissions": {
+        "mint_token": true,
+        "merge_token": true,
+        "transfer_token": true
+      },
+      "contact_info": {
+        "email": "info@goldrefinery.com"
+      },
+      "active": true,
+      "created_at": "2026-02-04T16:38:08.398909+00:00",
+      "updated_at": "2026-02-04T16:38:08.398909+00:00"
+    },
+    {
+      "id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0",
+      "name": "Master Craftsman Ltd",
+      "role": "craftsman",
+      "permissions": {
+        "log_wastage": true,
+        "merge_token": true,
+        "split_token": true,
+        "transfer_token": true
+      },
+      "contact_info": {
+        "email": "contact@craftsman.com"
+      },
+      "active": true,
+      "created_at": "2026-02-04T16:38:08.398909+00:00",
+      "updated_at": "2026-02-04T16:38:08.398909+00:00"
+    },
+    {
+      "id": "3fb85466-33f9-4ca8-a995-2bf27528e808",
+      "name": "Quality Lab Services",
+      "role": "lab",
+      "permissions": {
+        "view_all": true,
+        "approve_wastage": true
+      },
+      "contact_info": {
+        "email": "lab@qualityservices.com"
+      },
+      "active": true,
+      "created_at": "2026-02-04T16:38:08.398909+00:00",
+      "updated_at": "2026-02-04T16:38:08.398909+00:00"
+    },
+    {
+      "id": "505377c0-cb91-474f-9806-fc305ddc0078",
+      "name": "BitVerse Admin",
+      "role": "admin",
+      "permissions": {
+        "view_all": true,
+        "mint_token": true,
+        "merge_token": true,
+        "split_token": true,
+        "approve_wastage": true,
+        "update_thresholds": true
+      },
+      "contact_info": {
+        "email": "admin@bitverse.com"
+      },
+      "active": true,
+      "created_at": "2026-02-04T16:38:08.398909+00:00",
+      "updated_at": "2026-02-04T16:38:08.398909+00:00"
+    }
+  ],
+  "products": [
+    {
+      "id": "32eb6ca8-f875-4a18-b1a0-a91a77c60e19",
+      "product_id": "PROD-ML8DKE3Q-2JOXU",
+      "name": "golus",
+      "type": "ring",
+      "gross_weight": 100,
+      "net_gold_weight": 70,
+      "purity": "24K",
+      "craftsman_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0",
+      "qr_code": "QR-PROD-ML8DKE3Q-2JOXU-fbg2vr8g",
+      "created_at": "2026-02-04T18:42:34.710391+00:00",
+      "updated_at": "2026-02-04T18:42:34.710391+00:00"
+    },
+    {
+      "id": "43cd0424-6b98-440a-8ffa-1e880274522c",
+      "product_id": "PROD-ML8F83FX-4TZ7A",
+      "name": "mrk ring",
+      "type": "ring",
+      "gross_weight": 20,
+      "net_gold_weight": 20,
+      "purity": "24K",
+      "craftsman_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0",
+      "qr_code": "QR-PROD-ML8F83FX-4TZ7A-fka7x4g9",
+      "created_at": "2026-02-04T19:29:00.250563+00:00",
+      "updated_at": "2026-02-04T19:29:00.250563+00:00"
+    },
+    {
+      "id": "8607521b-2e44-4ddc-922f-3597805d1ccf",
+      "product_id": "PROD-ML8FI5FB-AT1J9",
+      "name": "mrk",
+      "type": "ring",
+      "gross_weight": 20,
+      "net_gold_weight": 15,
+      "purity": "24K",
+      "craftsman_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0",
+      "qr_code": "QR-PROD-ML8FI5FB-AT1J9-lxk5gt2d",
+      "created_at": "2026-02-04T19:36:49.367874+00:00",
+      "updated_at": "2026-02-04T19:36:49.367874+00:00"
+    }
+  ],
+  "tokens": [
+    {
+      "id": "49bc9cb6-9d52-462d-8588-168a6a286965",
+      "token_id": "TOK-ML8D8W3X-TV2PD",
+      "weight": 30,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "a3806e6c-62e2-4e25-bc6e-60253a0fef9e",
+      "token_id": "TOK-ML8CY4OD-2E2XG",
+      "weight": 100.33,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "50951d2c-9e31-456a-a28b-83b1fe2e492e",
+      "token_id": "TOK-ML8DEZGM-D4GQZ",
+      "weight": 30,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "8babdfb5-7414-425e-8d34-90846aac52fa",
+      "token_id": "TOK-ML8CZ0Q0-HDLDT",
+      "weight": 200,
+      "status": "converted_to_product",
+      "current_owner_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0"
+    },
+    {
+      "id": "fa17addd-2a76-42c9-b11c-15678d8d6e02",
+      "token_id": "TOK-ML8DG91B-DUS8C",
+      "weight": 33,
+      "status": "converted_to_product",
+      "current_owner_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0"
+    },
+    {
+      "id": "ec8d5315-790b-4873-a668-63e750d4c3cb",
+      "token_id": "TOK-ML8EE7RI-RNMS8",
+      "weight": 50,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "95b54999-bd05-4d06-8a21-bd021eae44dd",
+      "token_id": "TOK-ML8DH34T-F3RZ4",
+      "weight": 333,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "811da9be-24ba-41b5-a7fb-cdcd11bb7956",
+      "token_id": "TOK-ML8EL7SJ-DMLS4",
+      "weight": 39999.97,
+      "status": "active",
+      "current_owner_id": "3fb85466-33f9-4ca8-a995-2bf27528e808"
+    },
+    {
+      "id": "5c5f0c32-0814-4a5b-9d7f-515e8526116a",
+      "token_id": "TOK-ML8EREZ1-VYYKS",
+      "weight": 34,
+      "status": "active",
+      "current_owner_id": "9f53546e-67a2-4d0e-bd43-131479a64c62"
+    },
+    {
+      "id": "39fb982c-980f-4347-b190-1fc6083899a5",
+      "token_id": "TOK-ML8EKWZJ-C9388",
+      "weight": 50000,
+      "status": "converted_to_product",
+      "current_owner_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0"
+    },
+    {
+      "id": "02b0e1ee-5e58-46e8-b7bd-f7f26f6ef457",
+      "token_id": "TOK-ML8DC9OM-F0HUW",
+      "weight": 77,
+      "status": "converted_to_product",
+      "current_owner_id": "b3cf56b8-4dc0-4081-9069-2d34d55438e0"
+    }
+  ]
+}

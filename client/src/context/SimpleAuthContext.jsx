@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 // Mock users with participant data
 const MOCK_USERS = {
     refiner: {
-        id: '11111111-1111-1111-1111-111111111111',
+        id: '9f53546e-67a2-4d0e-bd43-131479a64c62',
         username: 'refiner',
         password: 'refiner',
         role: 'refiner',
@@ -11,7 +11,7 @@ const MOCK_USERS = {
         permissions: ['mint_token', 'merge_token', 'transfer_token', 'view_own']
     },
     craftsman: {
-        id: '22222222-2222-2222-2222-222222222222',
+        id: 'b3cf56b8-4dc0-4081-9069-2d34d55438e0',
         username: 'craftsman',
         password: 'craftsman',
         role: 'craftsman',
@@ -19,7 +19,7 @@ const MOCK_USERS = {
         permissions: ['split_token', 'merge_token', 'log_wastage', 'transfer_token', 'create_product', 'view_own']
     },
     lab: {
-        id: '33333333-3333-3333-3333-333333333333',
+        id: '3fb85466-33f9-4ca8-a995-2bf27528e808',
         username: 'lab',
         password: 'lab',
         role: 'lab',
@@ -27,12 +27,20 @@ const MOCK_USERS = {
         permissions: ['approve_wastage', 'view_all']
     },
     admin: {
-        id: '44444444-4444-4444-4444-444444444444',
+        id: '505377c0-cb91-474f-9806-fc305ddc0078',
         username: 'admin',
         password: 'admin',
         role: 'admin',
         name: 'BitVerse Admin',
         permissions: ['mint_token', 'split_token', 'merge_token', 'transfer_token', 'approve_wastage', 'update_thresholds', 'view_all', 'create_product']
+    },
+    jeweller: {
+        id: 'e3cf56b8-4dc0-4081-9069-2d34d55438e0', // Placeholder UUID
+        username: 'jeweller',
+        password: 'jeweller',
+        role: 'jeweller',
+        name: 'Luxury Gems Jewellers',
+        permissions: ['transfer_token', 'view_own']
     }
 }
 

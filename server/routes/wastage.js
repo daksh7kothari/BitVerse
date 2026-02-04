@@ -10,6 +10,9 @@ router.post('/log', requirePermission('log_wastage'), wastageController.logWasta
 // POST /api/wastage/:id/approve - Approve/reject wastage (lab/auditor only)
 router.post('/:id/approve', requirePermission('approve_wastage'), wastageController.approveWastage)
 
+// GET /api/wastage/logs - List all wastage logs (lab/admin)
+router.get('/logs', requirePermission('approve_wastage'), wastageController.getWastageLogs)
+
 // GET /api/wastage/thresholds - Get thresholds (public)
 router.get('/thresholds', wastageController.getThresholds)
 
