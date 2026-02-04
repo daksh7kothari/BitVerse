@@ -6,4 +6,4 @@ export const ROLES = {
 
 export const PURITY_OPTIONS = ['24K', '22K', '18K']
 
-export const INITIAL_OWNER = 'Prestige Jewellers'
+export const INITIAL_OWNER = 'MRK Jewellers'

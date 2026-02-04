@@ -23,9 +23,29 @@ export const requireAuth = async (req, res, next) => {
             return res.status(401).json({ error: 'Invalid or expired token' })
         }
 
+        // Attach user to request
         req.user = user
+
+        // For development: mock participant if using test mode
+        // TODO: Remove this and require proper participant mapping in production
+        if (process.env.NODE_ENV === 'development') {
+            // Try to find participant by email match or create mock
+            const { data: participant } = await supabase
+                .from('participants')
+                .select('id, name, role')
+                .eq('contact_info->>email', user.email)
+                .single()
+
+            if (participant) {
+                req.user.id = participant.id // Override user ID with participant ID
+            }
+        }
+
         next()
     } catch (error) {
         return res.status(401).json({ error: 'Authentication failed' })
     }
 }
+
+// Export alias for consistency
+export const authenticate = requireAuth

@@ -1,18 +1,20 @@
+import { useSimpleAuth } from '../context/SimpleAuthContext'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 
-const ProtectedRoute = ({ children, role }) => {
-    const { user, profile, loading } = useAuth()
+const ProtectedRoute = ({ children }) => {
+    const { isAuthenticated, loading } = useSimpleAuth()
 
-    if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>
-
-    if (!user) {
-        return <Navigate to="/login" replace />
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="text-yellow-500 text-xl">Loading...</div>
+            </div>
+        )
     }
 
-    // Simple role check if provided
-    // Note: For MVP we might skip strict role checks for now, or assume 'public' role means basic user
-    // If profile role doesn't match needed role: (Can implement later)
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />
+    }
 
     return children
 }
