@@ -53,7 +53,7 @@ export function JewellerPortal({ isSidebarOpen, setIsSidebarOpen }) {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       />
-      <main className="flex-1 md:ml-64 p-8 pt-24 min-h-screen bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat">
+      <main className="flex-1 md:ml-64 p-8 pt-24 min-h-screen">
         {activeTab === 'dashboard' && <DashboardTab batches={batchesWithHistory} />}
         {activeTab === 'create' && <CreateTab onCreateBatch={handleCreateBatch} />}
         {activeTab === 'my-inventory' && <InventoryTab batches={batchesWithHistory} onTransfer={handleTransfer} />}

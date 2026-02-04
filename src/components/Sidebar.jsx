@@ -3,14 +3,14 @@ import { ROLES } from '../lib/constants'
 
 export function Sidebar({ role, activeTab, setActiveTab, isSidebarOpen, setIsSidebarOpen }) {
   return (
-    <div className={`fixed inset-y-0 left-0 w-64 bg-zinc-900 border-r border-white/10 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out z-40 pt-20 px-4`}>
-      <div className="space-y-2">
+    <div className={`fixed inset-y-4 left-4 w-64 glass-panel rounded-3xl transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%]'} md:translate-x-0 transition-transform duration-300 ease-out z-40 p-6 flex flex-col`}>
+      <div className="space-y-3 mt-12">
         <button
           onClick={() => {
             setActiveTab('dashboard')
             setIsSidebarOpen(false)
           }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'dashboard' ? 'bg-yellow-500 text-black font-bold' : 'text-gray-400 hover:bg-white/5'}`}
+          className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-black font-bold shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           <LayoutDashboard size={20} /> Dashboard
         </button>
@@ -21,7 +21,7 @@ export function Sidebar({ role, activeTab, setActiveTab, isSidebarOpen, setIsSid
                 setActiveTab('create')
                 setIsSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'create' ? 'bg-yellow-500 text-black font-bold' : 'text-gray-400 hover:bg-white/5'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 ${activeTab === 'create' ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-black font-bold shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
             >
               <PlusCircle size={20} /> Birth Certificate
             </button>
@@ -30,7 +30,7 @@ export function Sidebar({ role, activeTab, setActiveTab, isSidebarOpen, setIsSid
                 setActiveTab('my-inventory')
                 setIsSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'my-inventory' ? 'bg-yellow-500 text-black font-bold' : 'text-gray-400 hover:bg-white/5'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 ${activeTab === 'my-inventory' ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-black font-bold shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
             >
               <Coins size={20} /> My Inventory
             </button>
@@ -41,7 +41,7 @@ export function Sidebar({ role, activeTab, setActiveTab, isSidebarOpen, setIsSid
             setActiveTab('ledger')
             setIsSidebarOpen(false)
           }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'ledger' ? 'bg-yellow-500 text-black font-bold' : 'text-gray-400 hover:bg-white/5'}`}
+          className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 ${activeTab === 'ledger' ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-black font-bold shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           <Database size={20} /> Blockchain Ledger
         </button>
