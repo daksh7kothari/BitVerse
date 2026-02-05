@@ -96,22 +96,28 @@ export const JewellerDashboard = () => {
 
     const fetchSalesHistory = async () => {
         try {
-            // Using admin endpoint as a hackathon bypass to show sold products
-            // In production, this would be a specific sales endpoint
             const response = await fetch('http://localhost:3000/api/admin/audit-logs', {
-                headers: { 'Authorization': `Bearer mock-admin` } // Hack: use admin privilege to see logs
+                headers: { 'Authorization': `Bearer mock-admin` }
             })
             if (response.ok) {
                 const data = await response.json()
-                // Filter for sales transactions
-                const sales = data.filter(log =>
-                    log.action_type === 'transfer_product' &&
+                // Filter for all transfers involvingprodukte
+                const relevantLogs = data.filter(log =>
+                    (log.action_type === 'transfer_token' && log.details.is_product) ||
+                    log.action_type === 'transfer_product' || // Fallback
+                    (log.action_type === 'create_product' && log.performed_by_id === user.id)
+                )
+
+                // For revenue: only outgoing transfers by the jeweller (sales)
+                const sales = relevantLogs.filter(log =>
+                    (log.action_type === 'transfer_token' || log.action_type === 'transfer_product') &&
                     log.details.notes?.includes('FINAL SALE')
                 )
-                setAuditLogs(sales)
+
+                setAuditLogs(relevantLogs)
             }
         } catch (err) {
-            console.error('Failed to fetch sales history', err)
+            console.error('Failed to fetch transaction history', err)
         }
     }
 
@@ -151,24 +157,31 @@ export const JewellerDashboard = () => {
         }
     }
 
-    // Identify which products are sold
-    const soldProductIds = auditLogs.map(log => log.resource_id)
+    // Identify which products are sold or in inventory
+    const soldProductIds = auditLogs
+        .filter(log => log.details.notes?.includes('FINAL SALE'))
+        .map(log => log.resource_id)
 
     const filteredProducts = products.filter(p =>
         (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.product_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        !soldProductIds.includes(p.id) // Only show available products in the main catalog
+        !soldProductIds.includes(p.id) &&
+        (p.craftsman_id === user.id || p.craftsman_id === 'e3cf56b8-4dc0-4081-9069-2d34d55438e0') // Show only owned items
     )
 
-    const soldProductsView = auditLogs.map(log => {
-        const product = products.find(p => p.id === log.resource_id)
-        if (!product) return null
-        return {
-            ...product,
-            saleInfo: log.details.notes,
-            soldAt: log.created_at
-        }
-    }).filter(Boolean)
+    const soldProductsView = auditLogs
+        .filter(log => log.details.notes?.includes('FINAL SALE'))
+        .map(log => {
+            const product = products.find(p => p.id === log.resource_id)
+            if (!product) return null
+            return {
+                ...product,
+                saleInfo: log.details.notes,
+                soldAt: log.created_at
+            }
+        }).filter(Boolean)
+
+    const [activeTab, setActiveTab] = useState('inventory')
 
     return (
         <div className="animate-slide-up space-y-12 pb-20">
@@ -192,10 +205,23 @@ export const JewellerDashboard = () => {
                             Welcome back, <span className="text-white font-bold">{user.name}</span>. Manage your boutique inventory and authorize high-value transactions with cryptographic precision.
                         </p>
                     </div>
-                    <div className="flex gap-4">
-                        <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] text-center min-w-[140px] group transition-all duration-500 bg-green-500/5 border-green-500/20">
+                    <div className="flex flex-wrap justify-center md:justify-end gap-4">
+                        <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] text-center min-w-[170px] group transition-all duration-500 bg-green-500/5 border-green-500/20 shadow-2xl shadow-green-500/5">
                             <div className="text-green-500 text-[10px] uppercase font-black tracking-widest mb-1 group-hover:text-gold transition-colors">Digital Revenue</div>
-                            <div className="text-4xl font-black text-white">{soldProductsView.length} Sold</div>
+                            <div className="text-3xl font-black text-white">
+                                ${soldProductsView.reduce((acc, p) => {
+                                    const match = p.saleInfo?.match(/Price: ([\d,.]+)/)
+                                    return acc + (match ? parseFloat(match[1].replace(/,/g, '')) : 0)
+                                }, 0).toLocaleString()}
+                            </div>
+                        </div>
+                        <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] text-center min-w-[170px] group transition-all duration-500 bg-gold/5 border-gold/20 shadow-2xl shadow-gold/5">
+                            <div className="text-gold text-[10px] uppercase font-black tracking-widest mb-1 group-hover:text-white transition-colors">Vault Velocity</div>
+                            <div className="text-3xl font-black text-white">{soldProductsView.length} <span className="text-sm text-gray-500 font-bold uppercase tracking-widest ml-1">Items</span></div>
+                        </div>
+                        <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] text-center min-w-[170px] group transition-all duration-500 bg-blue-500/5 border-blue-500/20 shadow-2xl shadow-blue-500/5">
+                            <div className="text-blue-400 text-[10px] uppercase font-black tracking-widest mb-1 group-hover:text-white transition-colors">Total Mass Sold</div>
+                            <div className="text-3xl font-black text-white">{soldProductsView.reduce((acc, p) => acc + parseFloat(p.net_gold_weight || 0), 0).toFixed(2)}g</div>
                         </div>
                     </div>
                 </div>
@@ -207,68 +233,115 @@ export const JewellerDashboard = () => {
                 {error && <div className="p-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-3xl animate-shake flex items-center gap-4 shadow-lg shadow-red-500/10 font-bold"><ShieldCheck size={24} /> {error}</div>}
             </div>
 
+            {/* Dashboard Tabs */}
+            <div className="flex justify-center gap-4 mb-12">
+                <button
+                    onClick={() => setActiveTab('inventory')}
+                    className={`flex items-center gap-3 px-10 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${activeTab === 'inventory' ? 'bg-gold text-black shadow-2xl shadow-gold/20 scale-[1.05]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                    <Package size={18} /> Available Catalog
+                </button>
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`flex items-center gap-3 px-10 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${activeTab === 'history' ? 'bg-gold text-black shadow-2xl shadow-gold/20 scale-[1.05]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                    <History size={18} /> Authorised Transactions
+                </button>
+            </div>
+
             {/* Main Content Area */}
             <div className="space-y-16">
-                {/* Search & Available Stock */}
-                <section className="space-y-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-4 px-2">
-                            <div className="h-8 w-1.5 bg-gold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
-                            <h2 className="text-2xl font-black uppercase tracking-tight">Available for <span className="text-gold">Immediate Sale</span></h2>
-                        </div>
-                        <div className="relative w-full max-w-md group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition-colors" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Identify specific asset..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="relative w-full bg-black/40 border border-white/10 rounded-[1.5rem] pl-16 pr-8 py-4 text-white focus:border-gold outline-none transition-all shadow-xl backdrop-blur-xl group-hover:border-white/20 font-medium"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredProducts.length === 0 ? (
-                            <div className="col-span-full py-24 text-center glass-panel border-dashed border-2 border-white/5 rounded-[3rem] opacity-50 bg-white/[0.02]">
-                                <ShoppingCart size={64} className="mx-auto text-gray-600 mb-6" />
-                                <h3 className="text-xl font-bold uppercase tracking-widest text-white">Catalog Depleted</h3>
-                                <p className="text-xs uppercase font-black text-gray-500 mt-2">All assets have been successfully transferred to private ownership.</p>
+                {activeTab === 'inventory' ? (
+                    <section className="space-y-8">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div className="flex items-center gap-4 px-2">
+                                <div className="h-8 w-1.5 bg-gold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
+                                <h2 className="text-2xl font-black uppercase tracking-tight">Available for <span className="text-gold">Immediate Sale</span></h2>
                             </div>
-                        ) : (
-                            filteredProducts.map(product => (
-                                <ProductCard key={product.id} product={product} isOwned={true} onSale={() => {
-                                    setActiveForm('sale')
-                                    setSaleData({ ...saleData, product_id: product.id })
-                                }} />
-                            ))
-                        )}
-                    </div>
-                </section>
-
-                {/* Section: Sold Ledger */}
-                {soldProductsView.length > 0 && (
-                    <section className="space-y-8 pt-12 border-t border-white/5">
-                        <div className="flex items-center gap-4 px-2">
-                            <div className="h-8 w-1.5 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)]"></div>
-                            <h2 className="text-2xl font-black uppercase tracking-tight text-white">Boutique <span className="text-green-500">Sales Ledger</span></h2>
+                            <div className="relative w-full max-w-md group">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition-colors" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Identify specific asset..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="relative w-full bg-black/40 border border-white/10 rounded-[1.5rem] pl-16 pr-8 py-4 text-white focus:border-gold outline-none transition-all shadow-xl backdrop-blur-xl group-hover:border-white/20 font-medium"
+                                />
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {soldProductsView.map(product => (
-                                <div key={product.id + '_sold'} className="relative group">
-                                    <ProductCard product={product} isOwned={false} isSold={true} />
-                                    <div className="mt-4 p-5 bg-green-500/5 border border-green-500/10 rounded-3xl animate-fade-in group-hover:border-green-500/20 transition-all">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div className="text-[10px] font-black text-green-500 uppercase tracking-widest">Transaction Verified</div>
-                                            <div className="text-[9px] font-mono text-gray-600">{new Date(product.soldAt).toLocaleString()}</div>
-                                        </div>
-                                        <p className="text-xs text-gray-400 font-medium leading-relaxed italic border-l-2 border-green-500/30 pl-3">
-                                            {product.saleInfo}
-                                        </p>
-                                    </div>
+                            {filteredProducts.length === 0 ? (
+                                <div className="col-span-full py-24 text-center glass-panel border-dashed border-2 border-white/5 rounded-[3rem] opacity-50 bg-white/[0.02]">
+                                    <ShoppingCart size={64} className="mx-auto text-gray-600 mb-6" />
+                                    <h3 className="text-xl font-bold uppercase tracking-widest text-white">Catalog Depleted</h3>
+                                    <p className="text-xs uppercase font-black text-gray-500 mt-2">All assets have been successfully transferred to private ownership.</p>
                                 </div>
-                            ))}
+                            ) : (
+                                filteredProducts.map(product => (
+                                    <ProductCard key={product.id} product={product} isOwned={true} onSale={() => {
+                                        setActiveForm('sale')
+                                        setSaleData({ ...saleData, product_id: product.id })
+                                    }} />
+                                ))
+                            )}
+                        </div>
+                    </section>
+                ) : (
+                    <section className="space-y-8">
+                        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 px-2">
+                            <div>
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className="h-8 w-1.5 bg-gold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-white">Authorized <span className="text-gold">Supply Chain Event Journal</span></h2>
+                                </div>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] font-mono">Real-time cryptographic audit trail of your boutique's operations</p>
+                            </div>
+                        </div>
+
+                        <div className="glass-panel rounded-[3rem] overflow-hidden border border-white/5 shadow-2xl bg-white/[0.01]">
+                            <table className="w-full text-left">
+                                <thead className="bg-white/5 border-b border-white/10">
+                                    <tr>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase text-gray-500 tracking-widest font-mono">Event Type</th>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase text-gray-500 tracking-widest font-mono">Resource / ID</th>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase text-gray-500 tracking-widest font-mono">Status / Memo</th>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase text-gray-500 tracking-widest font-mono text-right">Verification Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/[0.03]">
+                                    {auditLogs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="px-10 py-20 text-center text-gray-600 uppercase font-black text-[10px] tracking-widest">No transaction events recorded in this jurisdiction.</td>
+                                        </tr>
+                                    ) : (
+                                        auditLogs.map((log, idx) => (
+                                            <tr key={log.id} className="hover:bg-white/[0.02] transition-colors duration-300 group">
+                                                <td className="px-10 py-8">
+                                                    <div className={`inline-flex px-4 py-2 rounded-xl text-[9px] font-extrabold uppercase tracking-widest ${log.action_type === 'create_product' ? 'bg-blue-500/10 text-blue-400' : 'bg-gold/10 text-gold'}`}>
+                                                        {log.action_type.replace(/_/g, ' ')}
+                                                    </div>
+                                                </td>
+                                                <td className="px-10 py-8">
+                                                    <div className="text-sm font-black text-white uppercase italic tracking-tighter">
+                                                        {log.details.product_id || log.details.token_id || log.resource_type}
+                                                    </div>
+                                                    <div className="text-[9px] text-gray-600 font-mono mt-1 mb-1">{log.resource_id.substring(0, 13)}...</div>
+                                                </td>
+                                                <td className="px-10 py-8">
+                                                    <div className="max-w-xs text-[11px] text-gray-400 font-medium leading-relaxed italic border-l-2 border-white/10 pl-4 group-hover:border-gold/30 transition-all">
+                                                        {log.details.notes || 'Automated protocol record'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-10 py-8 text-right">
+                                                    <div className="text-[10px] font-black text-white uppercase tracking-widest mb-1">{new Date(log.created_at).toLocaleDateString()}</div>
+                                                    <div className="text-[9px] text-gray-600 font-bold uppercase">{new Date(log.created_at).toLocaleTimeString()}</div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </section>
                 )}

@@ -7,14 +7,17 @@ export default {
     extend: {
       colors: {
         'gold': {
+          DEFAULT: '#f59e0b',
           300: '#fde68a',
           400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
         },
         'rich-black': {
+          DEFAULT: '#050505',
           800: '#0a0a0a',
           900: '#050505',
+          950: '#020202',
         },
       },
       animation: {

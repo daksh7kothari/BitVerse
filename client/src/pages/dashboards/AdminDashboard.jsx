@@ -164,9 +164,9 @@ export const AdminDashboard = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id); setSearchTerm('') }}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${activeTab === tab.id ? 'bg-gold text-black shadow-[0_0_30px_rgba(212,175,55,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                                className={`flex items-center gap-3 px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${activeTab === tab.id ? 'bg-gradient-to-r from-gold to-yellow-600 text-black shadow-[0_0_50px_rgba(212,175,55,0.4)] scale-[1.05]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                             >
-                                <tab.icon size={16} />
+                                <tab.icon size={16} className={activeTab === tab.id ? 'text-black' : 'text-gold'} />
                                 <span>{tab.label}</span>
                             </button>
                         ))}
@@ -182,7 +182,7 @@ export const AdminDashboard = () => {
                             placeholder={`Filter ${activeTab} records...`}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/5 rounded-[2rem] pl-20 pr-10 py-7 text-white focus:border-gold/50 outline-none shadow-2xl backdrop-blur-xl transition-all duration-500 font-bold placeholder:text-gray-700 text-lg"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-[2.5rem] pl-20 pr-10 py-7 text-white focus:border-gold/50 outline-none shadow-2xl backdrop-blur-xl transition-all duration-500 font-bold placeholder:text-gray-700 text-lg hover:bg-white/[0.05]"
                         />
                     </div>
                 )}
