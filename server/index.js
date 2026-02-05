@@ -24,9 +24,9 @@ app.get('/', (req, res) => {
     res.send('BitVerse API Running - Token Traceability System Active')
 })
 
-// Legacy Routes
+// Core Protocol Routes
 app.use('/api/batches', batchesRoutes)
-app.use('/api/admin', adminRoutes)
+app.use('/api/admin', authenticate, adminRoutes)
 
 // New Token Traceability Routes (with authentication)
 app.use('/api/tokens', authenticate, tokensRoutes)

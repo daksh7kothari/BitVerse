@@ -157,3 +157,46 @@ export const getWastageLogs = async (req, res) => {
         res.status(500).json({ error: error.message })
     }
 }
+
+/**
+ * GET /api/admin/db/tables
+ * List all protocol tables
+ */
+export const getDbTables = async (req, res) => {
+    try {
+        const tables = [
+            { name: 'participants', description: 'Supply Chain Actors & Roles' },
+            { name: 'gold_batches', description: 'Raw Metal Entry Batches' },
+            { name: 'tokens', description: 'Digital Gold Tokens (Ledger)' },
+            { name: 'token_lineage', description: 'Split/Merge Heritage Tree' },
+            { name: 'token_transfers', description: 'Chain of Custody History' },
+            { name: 'products', description: 'Finished Jewellery Goods' },
+            { name: 'product_token_composition', description: 'Product-to-Token Mapping' },
+            { name: 'wastage_logs', description: 'Production Mass Variation Logs' },
+            { name: 'wastage_thresholds', description: 'Compliance & Audit Rules' },
+            { name: 'audit_log', description: 'Immutable System Mutation Log' }
+        ]
+        res.json(tables)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
+/**
+ * GET /api/admin/db/raw/:tableName
+ */
+export const getRawTableData = async (req, res) => {
+    try {
+        const { tableName } = req.params
+        const { data, error } = await supabase
+            .from(tableName)
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100)
+
+        if (error) throw error
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}

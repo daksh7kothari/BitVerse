@@ -12,4 +12,8 @@ router.get('/tokens', requirePermission('view_all'), adminController.getTokens)
 router.get('/products', requirePermission('view_all'), adminController.getProducts)
 router.get('/wastage', requirePermission('view_all'), adminController.getWastageLogs)
 
+// Database Explorer
+router.get('/db/tables', requirePermission('view_all'), adminController.getDbTables)
+router.get('/db/raw/:tableName', requirePermission('view_all'), adminController.getRawTableData)
+
 export default router
