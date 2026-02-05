@@ -81,13 +81,75 @@ export const getParticipants = async (req, res) => {
 export const getAuditLogs = async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('audit_logs')
+            .from('audit_log')
             .select(`
                 *,
-                user:participants!participant_id(name, role)
+                user:participants!performed_by_id(name, role)
             `)
             .order('created_at', { ascending: false })
-            .limit(50)
+            .limit(100)
+
+        if (error) throw error
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
+/**
+ * GET /api/admin/tokens
+ */
+export const getTokens = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('tokens')
+            .select(`
+                *,
+                owner:participants!current_owner_id(name, role),
+                minter:participants!minted_by_id(name, role)
+            `)
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
+/**
+ * GET /api/admin/products
+ */
+export const getProducts = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('products')
+            .select(`
+                *,
+                craftsman:participants!craftsman_id(name, role)
+            `)
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
+/**
+ * GET /api/admin/wastage
+ */
+export const getWastageLogs = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('wastage_logs')
+            .select(`
+                *,
+                craftsman:participants!craftsman_id(name, role),
+                approver:participants!approved_by_id(name, role)
+            `)
+            .order('created_at', { ascending: false })
 
         if (error) throw error
         res.json(data)

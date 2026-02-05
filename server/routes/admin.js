@@ -8,5 +8,8 @@ const router = express.Router()
 router.get('/stats', requirePermission('view_all'), adminController.getStats)
 router.get('/participants', requirePermission('view_all'), adminController.getParticipants)
 router.get('/audit-logs', requirePermission('view_all'), adminController.getAuditLogs)
+router.get('/tokens', requirePermission('view_all'), adminController.getTokens)
+router.get('/products', requirePermission('view_all'), adminController.getProducts)
+router.get('/wastage', requirePermission('view_all'), adminController.getWastageLogs)
 
 export default router

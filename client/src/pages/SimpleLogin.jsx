@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useSimpleAuth } from '../context/SimpleAuthContext'
-import { ShieldCheck, User, Lock, LogIn, ChevronRight, Activity, Database, Users, Shield } from 'lucide-react'
+import { ShieldCheck, User, Lock, LogIn, ChevronRight, Activity, Database, Users, Shield, Tag } from 'lucide-react'
 
 const SimpleLogin = () => {
     const [username, setUsername] = useState('')
@@ -130,6 +130,7 @@ const SimpleLogin = () => {
                             {[
                                 { id: 'refiner', icon: Database, color: 'text-blue-500', name: 'Refiner' },
                                 { id: 'craftsman', icon: Activity, color: 'text-purple-400', name: 'Craftsman' },
+                                { id: 'jeweller', icon: Tag, color: 'text-gold', name: 'Jeweller' },
                                 { id: 'lab', icon: ShieldCheck, color: 'text-green-500', name: 'Audit Lab' },
                                 { id: 'admin', icon: Users, color: 'text-red-500', name: 'Network' }
                             ].map((role) => (

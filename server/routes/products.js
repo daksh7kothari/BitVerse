@@ -10,6 +10,9 @@ router.post('/create', requirePermission('create_product'), productController.cr
 // GET /api/products/my - Get craftsman's products
 router.get('/my', requirePermission('view_own'), productController.getMyProducts)
 
+// GET /api/products - List all products
+router.get('/', requirePermission('view_own'), productController.getProducts)
+
 // GET /api/products/:id - Get product details (public)
 router.get('/:id', productController.getProduct)
 

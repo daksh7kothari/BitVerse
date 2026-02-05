@@ -306,6 +306,19 @@ export const CraftsmanDashboard = () => {
                         <div className={`text-sm ${activeForm === 'create_product' ? 'text-white/60' : 'text-gray-500'}`}>Mint new verified products</div>
                     </div>
                 </button>
+
+                <button
+                    onClick={() => setActiveForm(activeForm === 'transfer_jeweller' ? null : 'transfer_jeweller')}
+                    className={`group p-6 rounded-3xl border transition-all duration-300 flex items-center gap-6 ${activeForm === 'transfer_jeweller' ? 'bg-gold border-yellow-400 ring-4 ring-gold/20' : 'bg-white/5 border-white/10 hover:border-gold/50 glass-card'}`}
+                >
+                    <div className={`p-4 rounded-2xl transition-colors ${activeForm === 'transfer_jeweller' ? 'bg-black/10' : 'bg-gold/10 text-gold'}`}>
+                        <Send size={32} />
+                    </div>
+                    <div className="text-left">
+                        <div className={`font-bold text-xl ${activeForm === 'transfer_jeweller' ? 'text-black' : 'text-white'}`}>To Jeweller</div>
+                        <div className={`text-sm ${activeForm === 'transfer_jeweller' ? 'text-black/60' : 'text-gray-500'}`}>Ship to retail showrooms</div>
+                    </div>
+                </button>
             </div>
 
             {/* Notifications */}
@@ -569,43 +582,86 @@ export const CraftsmanDashboard = () => {
                 </section>
             </div>
 
-            {/* Transfer Product Modal/Form */}
-            {activeForm === 'transfer_product' && (
+            {/* Transfer Product Modal/Form (Now supporting specific Jeweller transfer) */}
+            {(activeForm === 'transfer_product' || activeForm === 'transfer_jeweller') && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
-                    <div className="glass-panel w-full max-w-xl p-8 rounded-[2.5rem] border border-green-500/30 shadow-2xl animate-slide-up">
+                    <div className={`glass-panel w-full max-w-xl p-8 rounded-[2.5rem] border ${activeForm === 'transfer_jeweller' ? 'border-gold/30' : 'border-green-500/30'} shadow-2xl animate-slide-up`}>
                         <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                            <Send className="text-green-500" /> Transfer Ownership
+                            <Send className={activeForm === 'transfer_jeweller' ? 'text-gold' : 'text-green-500'} />
+                            {activeForm === 'transfer_jeweller' ? 'Dispatch to Showroom' : 'Transfer Ownership'}
                         </h3>
-                        <p className="text-gray-400 text-sm mb-6">You are transferring ownership of product: <span className="text-white font-mono">{products.find(p => p.id === transferData.product_id)?.product_id}</span></p>
-                        <form onSubmit={handleTransferSubmit} className="space-y-6">
-                            <div>
-                                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Recipient Party</label>
+                        {transferData.product_id ? (
+                            <p className="text-gray-400 text-sm mb-6">Product: <span className="text-white font-mono">{products.find(p => p.id === transferData.product_id)?.product_id} - {products.find(p => p.id === transferData.product_id)?.name}</span></p>
+                        ) : (
+                            <div className="mb-6">
+                                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Select Product to Transfer</label>
                                 <select
                                     required
-                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-green-500 outline-none transition"
-                                    value={transferData.to_participant_id}
-                                    onChange={e => setTransferData({ ...transferData, to_participant_id: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-gold outline-none transition"
+                                    value={transferData.product_id}
+                                    onChange={e => setTransferData({ ...transferData, product_id: e.target.value })}
                                 >
-                                    <option value="">Select recipient...</option>
-                                    {participants.filter(p => p.id !== user.id).map(p => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name} ({p.role.toUpperCase()})
-                                        </option>
+                                    <option value="">Choose product...</option>
+                                    {products.map(p => (
+                                        <option key={p.id} value={p.id}>{p.product_id} - {p.name}</option>
                                     ))}
                                 </select>
                             </div>
+                        )}
+                        <form onSubmit={handleTransferSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Notes / Memo</label>
+                                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">
+                                    {activeForm === 'transfer_jeweller' ? 'Showroom Name / Destination' : 'Recipient Party'}
+                                </label>
+                                {activeForm === 'transfer_jeweller' ? (
+                                    <select
+                                        required
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-gold outline-none transition"
+                                        value={transferData.to_participant_id}
+                                        onChange={e => setTransferData({ ...transferData, to_participant_id: e.target.value })}
+                                    >
+                                        <option value="">Select Showroom/Jeweller...</option>
+                                        {participants
+                                            .filter(p => p.role === 'jeweller' || p.role === 'admin' || p.name.toLowerCase().includes('jewell'))
+                                            .map(p => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} (JEWELLER)
+                                                </option>
+                                            ))}
+                                    </select>
+                                ) : (
+                                    <select
+                                        required
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-yellow-500 outline-none transition"
+                                        value={transferData.to_participant_id}
+                                        onChange={e => setTransferData({ ...transferData, to_participant_id: e.target.value })}
+                                    >
+                                        <option value="">Select recipient...</option>
+                                        {participants
+                                            .filter(p => p.id !== user.id)
+                                            .map(p => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({p.role.toUpperCase()})
+                                                </option>
+                                            ))}
+                                    </select>
+                                )}
+                            </div>
+                            <div>
+                                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Transfer Memo / Name</label>
                                 <textarea
-                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-green-500 outline-none transition"
+                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-yellow-500 outline-none transition"
                                     rows="3"
-                                    placeholder="e.g. Sent for final hallmarking and display"
+                                    placeholder={activeForm === 'transfer_jeweller' ? "e.g. Batch for seasonal display" : "e.g. Sent for final hallmarking"}
+                                    value={transferData.notes}
                                     onChange={e => setTransferData({ ...transferData, notes: e.target.value })}
                                 />
                             </div>
                             <div className="flex gap-4">
-                                <button type="button" onClick={() => setActiveForm(null)} className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition">Cancel</button>
-                                <button type="submit" className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-2xl transition shadow-xl shadow-green-600/20">Confirm Transfer</button>
+                                <button type="button" onClick={() => { setActiveForm(null); setTransferData({ product_id: '', to_participant_id: '', notes: '' }) }} className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition">Cancel</button>
+                                <button type="submit" className={`flex-1 ${activeForm === 'transfer_jeweller' ? 'bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-black' : 'bg-green-600 hover:bg-green-500 text-white'} font-black py-4 rounded-2xl transition shadow-xl active:scale-95 uppercase text-xs tracking-widest`}>
+                                    {activeForm === 'transfer_jeweller' ? 'Ship to Store' : 'Verify & Transfer'}
+                                </button>
                             </div>
                         </form>
                     </div>

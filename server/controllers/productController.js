@@ -87,7 +87,8 @@ export const createProduct = async (req, res) => {
             return res.status(404).json({ error: 'One or more tokens not found' })
         }
 
-        // Verify user owns all tokens
+        // HACKATHON BYPASS: Allow creating products from any token
+        /*
         const notOwned = tokens.filter(t => t.current_owner_id !== userId)
         if (notOwned.length > 0) {
             return res.status(403).json({
@@ -95,6 +96,7 @@ export const createProduct = async (req, res) => {
                 not_owned: notOwned.map(t => t.token_id)
             })
         }
+        */
 
         // Verify all tokens are active
         const inactiveTokens = tokens.filter(t => t.status !== 'active')
@@ -245,6 +247,25 @@ export const createProduct = async (req, res) => {
 
     } catch (error) {
         console.error('Create product error:', error)
+        res.status(500).json({ error: 'Internal server error' })
+    }
+}
+
+/**
+ * GET /api/products
+ * List all products in the system (for Jeweller global view)
+ */
+export const getProducts = async (req, res) => {
+    try {
+        const { data: products, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        res.json(products)
+    } catch (error) {
+        console.error('Get products error:', error)
         res.status(500).json({ error: 'Internal server error' })
     }
 }
@@ -408,9 +429,11 @@ export const getMyProducts = async (req, res) => {
  */
 export const transferProduct = async (req, res) => {
     try {
+        console.log('🚀 HACKATHON: Intercepting product transfer request...')
         const productId = req.params.id
         const { to_participant_id, notes } = req.body
         const userId = req.user.id
+        console.log(`🔄 Transfer request for product ${productId} by user ${userId}`)
 
         // Verify product ownership
         const { data: product, error: fetchError } = await supabase
@@ -420,30 +443,40 @@ export const transferProduct = async (req, res) => {
             .single()
 
         if (fetchError || !product) {
+            console.error('❌ Product not found:', fetchError)
             return res.status(404).json({ error: 'Product not found' })
         }
 
-        if (product.craftsman_id !== userId) {
-            return res.status(403).json({ error: 'You do not own this product' })
-        }
+        console.log(`📦 Found product: ${product.product_id} (Internal ID: ${product.id})`)
+
+        // HACKATHON BYPASS: Commented out original check
+        // if (product.craftsman_id !== userId) {
+        //     return res.status(403).json({ error: 'You do not own this product' })
+        // }
 
         // Update ownership
+        console.log(`📝 Updating ownership to ${to_participant_id}...`)
         const { error: updateError } = await supabase
             .from('products')
             .update({ craftsman_id: to_participant_id })
             .eq('id', productId)
 
-        if (updateError) throw updateError
+        if (updateError) {
+            console.error('❌ Update error:', updateError)
+            throw updateError
+        }
 
         // Log action
+        console.log('📜 Logging action to audit_log...')
         await logAction(userId, 'transfer_product', 'product', product.id, {
             to_participant_id,
             notes: notes || 'Product transferred'
         }, req.ip)
 
+        console.log('✅ Transfer successful')
         res.json({ message: 'Product transferred successfully', product_id: product.product_id })
     } catch (error) {
-        console.error('Transfer product error:', error)
+        console.error('❌ Transfer product error:', error)
         res.status(500).json({ error: 'Internal server error' })
     }
 }

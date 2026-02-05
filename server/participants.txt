@@ -1,0 +1,18 @@
+﻿[dotenv@17.2.3] injecting env (3) from .env -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+Participants Header: [ 'id', 'name', 'role' ]
+[
+  '9f53546e-67a2-4d0e-bd43-131479a64c62',
+  'Gold Refinery Inc',
+  'refiner'
+]
+[
+  'b3cf56b8-4dc0-4081-9069-2d34d55438e0',
+  'Master Craftsman Ltd',
+  'craftsman'
+]
+[
+  '3fb85466-33f9-4ca8-a995-2bf27528e808',
+  'Quality Lab Services',
+  'lab'
+]
+[ '505377c0-cb91-474f-9806-fc305ddc0078', 'BitVerse Admin', 'admin' ]

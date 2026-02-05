@@ -135,26 +135,28 @@ export const LabDashboard = () => {
                     </div>
 
                     <div className="glass-panel p-2 rounded-[2.5rem] border border-white/5 min-h-[400px]">
-                        {pendingLogs.length === 0 ? (
+                        {allLogs.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-32 text-center space-y-4 opacity-40">
                                 <div className="p-8 bg-white/5 rounded-full border border-white/5">
                                     <ShieldCheck size={64} className="text-gray-500" />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-bold uppercase tracking-widest text-xl">System Quiet</h4>
-                                    <p className="text-xs text-gray-500 mt-2 uppercase font-black tracking-widest">No production wastage awaiting verification.</p>
+                                    <h4 className="text-white font-bold uppercase tracking-widest text-xl">Registry Empty</h4>
+                                    <p className="text-xs text-gray-500 mt-2 uppercase font-black tracking-widest">No production wastage logs found in the system.</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-4 p-4 max-h-[700px] overflow-y-auto scrollbar-hide">
-                                {pendingLogs.map(log => (
+                                {allLogs.map(log => (
                                     <div key={log.id} className="glass-card p-6 rounded-3xl border border-white/5 hover:border-white/10 flex flex-col md:flex-row justify-between gap-6 group">
                                         <div className="flex-1 space-y-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-gold uppercase tracking-widest">
                                                     {log.operation_type}
                                                 </div>
-                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${log.approval_status === 'flagged_for_audit' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${log.approval_status === 'approved' || log.approval_status === 'auto_approved' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                                                    log.approval_status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                                                        'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
                                                     }`}>
                                                     {log.approval_status.replace(/_/g, ' ')}
                                                 </span>
@@ -181,24 +183,32 @@ export const LabDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex md:flex-col gap-3 justify-center min-w-[140px]">
-                                            <button
-                                                onClick={() => handleApproval(log.id, true)}
-                                                className="flex-1 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white border border-green-600/30 rounded-2xl py-3 px-6 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 group-hover:scale-105 active:scale-95 shadow-lg shadow-green-600/5 outline-none"
-                                            >
-                                                <Check size={16} /> Certify
-                                            </button>
-                                            <button
-                                                onClick={() => handleApproval(log.id, false)}
-                                                className="flex-1 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-600/30 rounded-2xl py-3 px-6 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 group-hover:scale-105 active:scale-95 shadow-lg shadow-red-600/5 outline-none"
-                                            >
-                                                <XCircle size={16} /> Flag
-                                            </button>
-                                        </div>
+                                        {['pending_review', 'flagged_for_audit'].includes(log.approval_status) && (
+                                            <div className="flex md:flex-col gap-3 justify-center min-w-[140px]">
+                                                <button
+                                                    onClick={() => handleApproval(log.id, true)}
+                                                    className="flex-1 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white border border-green-600/30 rounded-2xl py-3 px-6 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 group-hover:scale-105 active:scale-95 shadow-lg shadow-green-600/5 outline-none"
+                                                >
+                                                    <Check size={16} /> Certify
+                                                </button>
+                                                <button
+                                                    onClick={() => handleApproval(log.id, false)}
+                                                    className="flex-1 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-600/30 rounded-2xl py-3 px-6 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 group-hover:scale-105 active:scale-95 shadow-lg shadow-red-600/5 outline-none"
+                                                >
+                                                    <XCircle size={16} /> Flag
+                                                </button>
+                                            </div>
+                                        )}
+                                        {log.approval_status === 'approved' && (
+                                            <div className="flex items-center justify-center min-w-[140px] text-green-500 opacity-60 italic text-[10px] font-black uppercase">
+                                                Verified by {user.name}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                        )}
+                        )
+                        }
                     </div>
                 </div>
 

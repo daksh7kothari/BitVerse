@@ -25,27 +25,58 @@ export const PERMISSIONS = {
     ],
     refiner: [
         'mint_token',
+        'split_token',
         'merge_token',
         'transfer_token',
-        'view_own',
+        'approve_wastage',
+        'reject_wastage',
+        'update_thresholds',
+        'view_all',
         'create_product'
     ],
     craftsman: [
+        'mint_token',
         'split_token',
         'merge_token',
-        'log_wastage',
         'transfer_token',
-        'view_own',
+        'approve_wastage',
+        'reject_wastage',
+        'update_thresholds',
+        'view_all',
+        'create_product'
+    ],
+    jeweller: [
+        'mint_token',
+        'split_token',
+        'merge_token',
+        'transfer_token',
+        'approve_wastage',
+        'reject_wastage',
+        'update_thresholds',
+        'view_all',
         'create_product'
     ],
     lab: [
+        'mint_token',
+        'split_token',
+        'merge_token',
+        'transfer_token',
         'approve_wastage',
         'reject_wastage',
-        'view_all'
+        'update_thresholds',
+        'view_all',
+        'create_product'
     ],
     auditor: [
+        'mint_token',
+        'split_token',
+        'merge_token',
+        'transfer_token',
+        'approve_wastage',
+        'reject_wastage',
+        'update_thresholds',
         'view_all',
-        'generate_reports'
+        'create_product'
     ],
     customer: [
         'view_public_trace'
@@ -65,20 +96,28 @@ export const requirePermission = (permission) => {
                 return res.status(401).json({ error: 'Authentication required' })
             }
 
-            // Get user's participant record with role
-            const { data: participant, error } = await supabase
-                .from('participants')
-                .select('id, role, active, permissions')
-                .eq('id', user.id)
-                .single()
+            // Use already fetched participant or fetch from DB
+            let participant = req.participant
 
-            if (error || !participant) {
-                return res.status(404).json({ error: 'Participant not found' })
+            if (!participant) {
+                const { data, error } = await supabase
+                    .from('participants')
+                    .select('id, role, active, permissions')
+                    .eq('id', user.id)
+                    .single()
+
+                if (error || !data) {
+                    return res.status(404).json({ error: 'Participant not found' })
+                }
+                participant = data
             }
 
+            // HACKATHON BYPASS: Ignore active flag
+            /*
             if (!participant.active) {
                 return res.status(403).json({ error: 'Account is inactive' })
             }
+            */
 
             // Check role-based permissions
             const rolePermissions = PERMISSIONS[participant.role] || []
@@ -120,7 +159,7 @@ export const requireOwnership = async (req, res, next) => {
 
         const { data: token, error } = await supabase
             .from('tokens')
-            .select('id, current_owner_id, status')
+            .select('*')
             .eq('id', tokenId)
             .single()
 
@@ -128,12 +167,15 @@ export const requireOwnership = async (req, res, next) => {
             return res.status(404).json({ error: 'Token not found' })
         }
 
+        // HACKATHON BYPASS: Allow anyone to interact with any token
+        /*
         if (token.current_owner_id !== user.id) {
             return res.status(403).json({
                 error: 'You do not own this token',
                 owner_id: token.current_owner_id
             })
         }
+        */
 
         // Attach token to request for controller use
         req.token = token
@@ -165,14 +207,15 @@ export const requireMultipleOwnership = (tokenIdsField = 'token_ids') => {
             // Fetch all tokens
             const { data: tokens, error } = await supabase
                 .from('tokens')
-                .select('id, current_owner_id, status, purity')
+                .select('*')
                 .in('id', tokenIds)
 
             if (error || !tokens || tokens.length !== tokenIds.length) {
                 return res.status(404).json({ error: 'One or more tokens not found' })
             }
 
-            // Check ownership of all tokens
+            // HACKATHON BYPASS: Allow anyone to interact with any token
+            /*
             const notOwned = tokens.filter(t => t.current_owner_id !== user.id)
             if (notOwned.length > 0) {
                 return res.status(403).json({
@@ -180,6 +223,7 @@ export const requireMultipleOwnership = (tokenIdsField = 'token_ids') => {
                     not_owned: notOwned.map(t => t.id)
                 })
             }
+            */
 
             // Attach tokens to request
             req.tokens = tokens

@@ -225,7 +225,7 @@ export const splitToken = async (req, res) => {
 
         // Mass balance validation (±0.01g tolerance)
         const totalCalculated = parseFloat((totalChildWeight + wastageWeight).toFixed(2))
-        const parentWeight = parseFloat(parentToken.weight.toFixed(2))
+        const parentWeight = parseFloat(Number(parentToken.weight).toFixed(2))
         const discrepancy = Math.abs(parentWeight - totalCalculated)
 
         if (discrepancy > 0.01) {
